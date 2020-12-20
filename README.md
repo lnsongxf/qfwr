@@ -32,4 +32,4 @@ qfwr_key("L04", "ex1")
 
 ```
 
-Of course, you can start `qfwr`'s interactive exercise in RStudio's **Tutorial** panel once installed.
+Of course, you can start `qfwr`'s interactive exercise in RStudio's **Tutorial** panel directly once installed.

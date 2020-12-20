@@ -1,0 +1,257 @@
+---
+title: "L05 上机练习"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE,
+  eval = FALSE  # 在最后 Knit 本文档前，记得将 eval 更改为 TRUE
+)
+```
+
+1. 本次编程实操练习的目的在于综合运用课程前面几讲学过的内容，导入 IPO 数据，
+   对数据进行处理并通过绘图进行探索性分析（已帮同学们从 Wind 下载所需数据）。
+
+2. 两份数据出处及说明如下：
+    
+    - `ipos_profile.csv` 数据来自 “Wind|股票|沪深股市专题统计|一级市场|IPO|新股
+      发行资料”，招股日期为 2006/01/01-2019/09/30，提取数据并导出到 Excel后，
+      在Excel中打开另存为csv格式文件
+    - `ipos_rets.xlsx` 数据来自 “Wind|股票|沪深股市专题统计|一级市场|IPO|新股
+      上市后市场表现”，日期为 2006/01/01-2019/10/13，提取数据并导出到 Excel
+
+3. 两份IPO相关数据都放在 `qfwr` 包安装目录下的 `exdata` 文件夹中，可用如下方法得到
+   两份文档的具体路径（按 `Ctrl+Shift+Enter` 快捷键或点击绿色 ▶ 键以执行当前代码块
+   中的代码）：
+
+    ```{r}
+    profile <- system.file("extdata", "ipos_profile.csv", package = "qfwr")
+    profile
+    
+    rets <- system.file("extdata", "ipos_rets.xlsx", package = "qfwr")
+    rets
+    
+    ```
+
+4. **务必根据文件路径到上述位置中逐一双击打开两份文档，并在 Excel 中大致浏览
+   数据字段和样本数，对原始数据有个初步感觉。**
+
+
+## 练习1. 读入并处理 `ipos_profile.csv`
+
+同学们通过Excel浏览数据 `ipos_profile.csv` 后不难看到：
+
+- `ipos_profile.csv` 中含有 67 个变量
+- 第1-2行为中文变量名
+- 最后2行是关于数据来源的注释。
+
+想直接通过 `read_csv()` 函数一步完成选定最终所需变量、重命名变量、选择样本行并
+完成变量类型转换等任务比较困难，这还会导致代码较长且难以理解
+（当然，同学们也可以动手试试，`r emo::ji("stuck_out_tongue_winking_eye")`😜）。
+
+基本思路调整为：
+**先将 `ipos_profile.csv` 文档以字符形式全部读入，然后再进行进一步的处理。**
+    
+### 1. 以字符形式读入全部内容
+
+```{r ex1-1}
+# 可在控制台Console键入 qfwr::qfwr_key("L05", "ex1-1") 查看参考答案
+
+# 1.1 加载tidyverse
+library(tidyverse)
+
+# 1.2 得到 ipos_profile.csv 的具体路径
+profile_path <- system.file("extdata", "ipos_profile.csv", package = "qfwr")
+
+# 1.3 以字符形式读入全部内容，代码模板如下：
+#     (选中以下6行，然后按下快捷键Ctrl+Shift+C试试)
+# ipos_profile <- read_csv(
+#   ____,                # 文件路径
+#   col_names = FALSE,   # 把前两行的复合变量名当成数据读进来，或考虑 skip 参数
+#   col_types = cols(.default = ____)
+#   # 若读入错误，则可能还需要设置 locale 参数的 encoding 取值
+# )
+
+
+# 1.4 浏览下 ipos_profile 数据集
+View(ipos_profile)
+
+```
+
+
+### 2. 逐步进行处理
+
+```{r ex1-2}
+# 可在控制台Console键入 qfwr::qfwr_key("L05", "ex1-2") 查看参考答案
+
+# 1-2.1 使用 %>% 分三步完成对数据的处理工作：
+#           选择变量->选择样本->变量类型转换
+#       代码模板如下：
+# ipos_profile_sml <- ipos_profile %>%
+#   ____( # 选出需要的变量
+#     stk_cd = X1,              # 代码
+#     stk_nme = ____,           # 名称
+#     ann_date = ____,          # 招股日期
+#     on_date = ____,           # 网上发行日期
+#     list_date = ____,         # 上市日期
+#     list_board = ____,        # 上市板
+#     issue_method = ____,      # 发行方式
+#     underwriter = ____,       # 主承销商
+#     csrc_ind = ____,          # 证监会行业(2012版)
+#     wind_ind = ____           # Wind行业
+#   ) %>%
+#   slice(-c(1, 2, ____, ____)) %>%    # 删除第1-2行和最后两行
+#   ____     # 对全部字符变量进行类型转换，type_*()
+
+# 1-2.2 浏览并glipmse数据处理结果
+View(ipos_profile_sml)
+glimpse(ipos_profile_sml)
+
+```
+
+
+## 练习2. 读入并处理 `ipos_rets.xlsx`
+
+在此我们使用 **`readxl`包** 来读入 .xlsx 或 .xls 格式文档，具体参数设置查看
+`?read_excel`的帮助文档。
+
+- 参数 `col_types` 的设置和 `readr` 包的同名参数有所不同
+- 没有 `locale` 参数（更省事，:)）
+
+在本例中我们只需正确设定参数 `col_names` 和数据单元格区域参数 `range`，
+变量类型读入基本正确（原 C 列的变量 “上市日期” 被转为 `dttm` 类型，但这对我们
+后续分析的影响并不大，也可以通 过`lubridate::as_date()` 转回 `date` 类型）。
+
+### 1. 直接读入文档内容
+
+```{r ex2-1}
+# 可在控制台Console键入 qfwr::qfwr_key("L05", "ex2-1") 查看参考答案
+
+# 2-1.1 (安装并)加载readxl包
+# install.packages("readxl")
+library(____)
+
+# 2-1.2 得到ipos_rets.xlsx的具体路径
+rets_path <- ____
+
+# 2-1.3 读入文档内容
+#       注意命令执行后的问题警示，由于 col_names=FALSE，read_excel()提供的
+#       默认变量名为 ...1，...2 ……
+# ipos_rets <- read_excel(
+#   ____,               # 文档路径
+#   col_names = FALSE,  # 还是不要将中文变量名读入，方便处理
+#   range = ____
+# )
+
+# 2-1.4 浏览读入的数据集
+View(ipos_rets)
+
+```
+
+### 2. 逐步进行处理
+
+```{r ex2-2}
+# 可在控制台Console键入 qfwr::qfwr_key("L05", "ex2-2") 查看参考答案
+
+# 2-2.1 (对照原Excel文档)选择(并重命名)所需的变量
+#       代码模板如下：
+# ipos_rets_sml <- ipos_rets %>% 
+#   ____(
+#     stk_cd = ____,          # 代码
+#     ipo_price = ____,       # 发行价格
+#     int_return = ____,      # 上市首日涨跌幅(%)
+#     int_turnover = ____,    # 上市首日换手率(%) 
+#     on_lottery = ____,      # 网上申购中签率(%)
+#     off_lottery = ____      # 网下申购中签率(%)
+#   )
+
+# 2-2.2 浏览并glimpse数据处理结果
+View(ipos_rets_sml)
+glimpse(ipos_rets_sml)
+
+```
+
+
+## 练习3. 合并数据集 `join`
+
+基于键变量 “`stk_cd`(股票代码)” 将数据集 `ipos_profile_sml` 和 `ipos_rets_sml`
+合并式连接起来。
+
+```{r ex3}
+# 可在控制台Console键入 qfwr::qfwr_key("L05", "ex3") 查看参考答案
+
+# 3.1 合并式连接两个数据集，仅保留在两个数据集中都出现的样本
+#     代码模板如下：
+# ipos <- ipos_profile_sml %>%
+#   *_join(____, by = ____)
+
+# 3.2 查看合并后的数据
+View(ipos)
+
+```
+
+
+## 练习4. 理解“首日收益率”的时序变化 `ggplot`
+
+在合并数据集 `ipos` 的基础上，我们可利用作图的方法对变量以及变量之间可能存在的
+关系进行探索性分析。
+
+```{r ex4, fig.align='center', out.width='70%'}
+# 可在控制台Console键入 qfwr::qfwr_key("L05", "ex4") 查看参考答案
+
+# 4.1 作IPO“首日收益率”的时序变化的散点图
+#     代码模板如下：
+# ipos %>% ggplot(aes(x = list_date, y = ____)) +  
+#   ____(
+#     aes(____),    # 分上市板设置不同颜色
+#     ____ = 1/5    # 散点可能出现重叠, 设置透明度
+#   ) + 
+#   labs(x = "Listing date", y = "Initial Returns (%)", color = NULL) + 
+#   scale_x_date(date_breaks = "1 year", date_labels = "%Y") + 
+#   theme(legend.position = "bottom")
+
+# 认真观察下IPO“首日收益率”的时序变化图有哪些典型特征？
+
+```
+
+
+## 练习5. 从头来过
+
+由于前面这些代码练习同学们都是在老师给出模板的基础上进行，请同学再回过头
+认真读下之前完成的代码，然后在用如下命令调出几乎空白的 `.R` 文档，看是否能
+独立/独力完成，`r emo::ji("muscle")`💪
+
+```{r, eval=FALSE, echo=FALSE}
+ex5_file <- system.file("tutorials", "L05", "L05-lab", "ex5.R", package = "qfwr")
+file.edit(ex5_file, fileEncoding = "UTF-8")
+```
+
+#### * IPO 网上申购中签率的时序变化图
+
+```{r ex5-more-1, eval=TRUE, echo=FALSE, fig.align='center', out.width='80%'}
+png5_1 <- system.file("tutorials", "L05", "L05-lab", "ex5-1.png", package = "qfwr")
+knitr::include_graphics(png5_1)
+```
+
+
+#### * IPO 网上申购中签率和网下申购中签率的关系及其变动图
+
+```{r ex5-more-2, eval=TRUE, echo=FALSE, fig.align='center', out.width='80%'}
+png5_2 <- system.file("tutorials", "L05", "L05-lab", "ex5-2.png", package = "qfwr")
+knitr::include_graphics(png5_2)
+```
+
+#### * IPO 网上申购中签率和首日收益率的关系及其变动图
+
+```{r ex5-more-3, eval=TRUE, echo=FALSE, fig.align='center', out.width='80%'}
+png5_3 <- system.file("tutorials", "L05", "L05-lab", "ex5-3.png", package = "qfwr")
+knitr::include_graphics(png5_3)
+```
+
+
+## 恭喜同学们，完成第五讲课后练习啦！
+
+### `r emo::ji("clinking_glasses")` []\~(￣▽￣)\~*  🥂
+
+
