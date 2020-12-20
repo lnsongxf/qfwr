@@ -1,0 +1,31 @@
+Package: qfwr
+Type: Package
+Title: Tools for "Quantitative Finance with R" course
+Version: 0.0.1
+Author: Yongyi Zeng
+Maintainer: Yongyi Zeng <zzyy@xmu.edu.cn>
+Description: Tools for my course "Quantitative Finance with R" (QFwR)
+    to facilitate teaching and learning. The interactive exercise is
+    mainly powered by RStudio's `learnr`, DataCamp's `testwhat` package 
+    and Rundel's `learnrhash`.
+URL: https://github.com/yyzeng/qfwr
+BugReports: https://github.com/yyzeng/qfwr/issues
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: true
+Imports: 
+    learnr (>= 0.9.2),
+    remotes (>= 2.0),
+    testwhat (>= 4.9.8),
+    learnrhash (>= 0.1.0),
+    emo (>= 0.0.0.9000)
+Suggests: 
+    maps (>= 3.0.0), 
+    tidyverse (>= 1.2.0),
+    tidyquant (>= 1.0.0),
+    tidymodels (>= 0.1.0)
+Remotes:  
+    rundel/learnrhash,
+    datacamp/testwhat,
+    hadley/emo
+RoxygenNote: 7.1.1
