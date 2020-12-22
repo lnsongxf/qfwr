@@ -1,0 +1,285 @@
+---
+title: "L06 向量与函数"
+author: "曾永艺"
+date: "2020年12月20日"
+output: 
+  learnr::tutorial:
+    progressive: true
+    allow_skip: true
+    df_print: "tibble"
+description: >
+  这是厦门大学管理学院财务学系 **“量化金融与金融编程”** 
+  课程 _“第6讲 向量与函数”_ 的配套练习。
+runtime: shiny_prerendered
+---
+
+```{r setup, include=FALSE}
+library(learnr)
+library(testwhat)
+library(tidyverse)
+library(lubridate)
+options(tibble.print_max = 6, tibble.print_min = 4)
+knitr::opts_chunk$set(
+  echo = FALSE,
+  out.width='70%', fig.align='center'
+)
+tutorial_options(exercise.timelimit = 60, 
+                 exercise.checker = testwhat_learnr)
+
+```
+
+
+## `r emo::ji("book")` 基础概念题
+
+<br>
+
+### 1. 原子向量 `Atomic vectors`
+
+#### 已帮同学们载入 `tidyverse` 包并在以下练习窗口中列示出生成原子向量 `x` 和 `x_named` 的代码，请同学们完成交互式探索，并回答以下选择题。（若同学更习惯在 RStudio 的环境下完成代码，则记得加载相关的R包）
+
+```{r fc_1, exercise=TRUE, exercise.lines=6}
+x <- 1:3
+x_named <- setNames(x, letters[1:3])
+x_named
+
+```
+
+```{r fc_1-hint}
+# 当代码被你修改得一团糟后，可按左上角的 Start Over 按钮来重置代码
+
+```
+
+
+```{r quiz_1}
+quiz(
+  question("1.1 在上面代码窗口中我们列示出一种生成命名向量 `x_named` 的方法，以下哪些代码可生成相同的 `x_named`？",
+    answer("`x_named <- c(a = 1, b = 2, c = 3)`", 
+           correct = TRUE),
+    answer('`x_named <- c("a" = 1, "b" = 2, "c" = 3)`', 
+           correct = TRUE),
+    answer("`x_named <- 1:3; names(x_named) <- letters[1:3]`", 
+           correct = TRUE),
+    answer('`x_named <- set_names(1:3, nm = c("a", "b", "c"))`', 
+           correct = TRUE),
+    answer('`x <- 1:3; x_named <- set_names(x, ~ letters[seq_along(.)])`', 
+           correct = TRUE),
+    correct = "Bingo！尽管这些方法都可以生成命名向量，但 `purrr::set_names()` 的参数的设置方式比 `base::setNames()` 更为灵活，值得你学习掌握。",
+    incorrect = "错误！多选题，请查看 `names`、`setNames` 和 `set_names` 等函数的帮助文档，然后重试。",
+    allow_retry = TRUE
+    
+  ),
+  
+  question("1.2 可用来提取命名向量 `x_named` 第2个和第3个元素的命令包括：",
+    answer("`x_named[c(2, 3)]`", correct = TRUE),
+    answer("`x_named[2, 3]`", 
+           message = "可以用数值向量来选取元素，但 `2, 3` 并非数值向量。"),
+    answer("`x_named[[c(2, 3)]]`", 
+           message = "`[[` 只能用来提取单个元素。"),
+    answer('`x_named[c("b", "c")]`', correct = TRUE),
+    answer("`x_named[-1]`", correct = TRUE),
+    answer('`x_named[-"a"]`', message = "负号只能用于数值向量。"),
+    answer("`x_named[c(FALSE, TRUE, TRUE)]`", correct = TRUE),
+    correct = "正确！选取（命名）向量的子集是同学们需要理解和掌握的基本技能，相同的方法既适用于原子向量，也适用于列表。",
+    incorrect = "错误！选取（命名）向量的子集是同学们需要理解和掌握的基本技能，这是一道多选题，请重试。",
+    allow_retry = TRUE, 
+    random_answer_order = TRUE
+  ),
+  
+  question("1.3 以下说法正确的有：<span style='color: red'>（&#x1F4A3; 注意此题答错不允许 Try Again &#x1F4A3;）</span>",
+    answer('向量包括原子向量和列表。', correct = TRUE),
+    answer('原子向量包括逻辑向量、整数向量、实数向量、字符向量、复数向量、原始向量等六种类型。', correct = TRUE),
+    answer('我们可以用 `as.*(x)` 函数对 `x` 进行显性类型转换。', correct = TRUE),
+    answer('当用 `c()` 函数连接不同类型的数据时，R 会自动套用最复杂的类型。', correct = TRUE),
+    answer('R 中的向量化函数会采用循环规则自动转换向量的长度。', correct = TRUE),
+    correct = "答对啦。这些都是我们需要了解的关于向量的基本知识。",
+    incorrect = "错误！不要钻概念的牛角尖啦。&#x1F609;",
+    # allow_retry = TRUE,
+    random_answer_order = TRUE
+  ),
+  
+  caption = "不定项选择题"
+)
+
+```
+
+### 2. 列表 `List`
+
+#### 已帮同学们载入 `tidyverse` 包并在以下练习窗口中列示出生成列表对象 `a` 的代码，请同学们完成交互式探索，并回答以下选择题。
+
+```{r fc_2, exercise=TRUE, exercise.lines=10}
+a <- list(
+  a = 1:3,
+  b = "a string",
+  c = pi,
+  d = list(-1, -5)
+)
+
+```
+
+```{r fc_2-hint}
+# 当代码被你修改得一团糟后，可按左上角的 Start Over 按钮来重置代码
+
+```
+
+
+```{r quiz_2}
+quiz(
+  question("2.1 以下关于列表说法正确的有：",
+    answer("列表和原子向量的最大区别在于列表可同时包含多种类型的元素。", 
+           correct = TRUE),
+    answer('`$` 运算符可用来提取命名列表的单个元素，但却无法应用于提取命名原子向量的单个元素。', correct = TRUE),
+    answer("由于提取的是单个字符串元素，`a[[2]]` 和 `a[2]` 返回的结果相同。", 
+           correct = FALSE, message = "`a[[2]]` 是字符向量，`a[2]` 是包含一个字符向量元素的列表。"),
+    answer('`a[4]` 是包含一个列表元素的列表，`a$d` 是包含两个元素的列表。', 
+           correct = TRUE),
+    answer('`is_vector(a)`、`is_list(a[1])`、`is_atomic(a$a)` 和 `is_integer(a[[1]])` 的结果均为 `TRUE`。', correct = TRUE),
+    correct = "正确。列表是用来存储复杂多类型数据的强大数据结构，理解并掌握操作列表的知识非常重要。",
+    incorrect = "错误！不要被绕晕啦，请深吸一口气，喝杯水 &#x1F375;，静心重试。",
+    allow_retry = TRUE
+  ),
+  
+  caption = "多项选择题"
+)
+
+```
+
+
+### 3. 向量属性与增强向量 `Vector attributes and augmented vectors`
+
+#### 已帮同学们载入 `tidyverse` 包并在以下练习窗口中列示出生成因子向量 `grade` 和对象 `lm01` 的代码，请同学们完成交互式探索，并回答以下选择题。
+
+```{r fc_3, exercise=TRUE, exercise.lines=10}
+# 一个因子向量
+grade <- factor(c("g", "e", "g", "p", "e"), 
+                levels = c("f", "p", "g", "e"))
+attr(grade, "by") = "y.z."
+
+# 一个线性回归模型
+lm01 <- lm(hwy ~ displ, data = mpg)
+
+```
+
+```{r fc_3-hint}
+# 当代码被你修改得一团糟后，可按左上角的 Start Over 按钮来重置代码
+
+```
+
+
+```{r quiz_3}
+quiz(
+  question("3.1 以下关于因子向量 `grade` 说法正确的是：",
+    answer('因子向量 `grade` 的类型和长度分别为 integer 和 4。', correct = FALSE, message = "我们可用 `typeof()` 和 `length()` 来得到向量的类型和长度；尽管因子向量 `grade` 的因子水平数为 4，但其长度为 5。"),
+    answer('`class(grade)`、`attr(grade, "class")` 和 `attributes(grade)$class` 都可以用来获取因子向量 `grade` 的类属性。', correct = TRUE),
+    answer("因子向量 `grade` 的名称和维度属性均为 `NA`。", correct = FALSE, 
+           message = "`names(grade)` 和 `dim(grade)` 的结果为 `NULL`，并非 `NA`。"),
+    answer('除了 class 属性之外，因子向量 `grade` 还有 levels 和 by 等两个属性，其中我们特意增加的 by 属性并不是所有因子向量所必须具备的属性。', correct = TRUE),
+    correct = "答对啦！&#x1F44D;",
+    incorrect = "错误！多选题，请重试。",
+    allow_retry = TRUE
+  ),
+  
+  question("3.2 以下关于对象 `lm01` 说法正确的有：",
+    answer('对象 `lm01` 的类型（type）和类（class）分别为 lm 和 list。', 
+           correct = FALSE, 
+           message = "把类型和类搞反了 &#x1F923;——我们可用 `typeof()` 和 `class()` 来分别获取对象 `lm01` 的类型和类。"),
+    answer('对象 `lm01` 的底层类型为 list，有12个元素，我们可用列表提取元素运算符 `[[` 和 `$` 来提取其中单个元素。', correct = TRUE),
+    answer('由于对象 `lm01` 的类属性为 lm（也即线性模型），这意味着当 `print(lm01)` 时，R 会根据类属性调用相应的方法，屏幕列示结果和普通列表明显不同。', correct = TRUE),
+    answer('用 `attributes(lm01)` 可以知道对象 `lm01` 有两个属性，分别为 names 和 class。', correct = TRUE),
+    answer('我们可用 `lm01$coefficients` 或 便利函数 `coef(lm01)` 来得到关于模型回归系数的命名列表。', 
+           correct = FALSE, 
+           message = "`lm01$coefficients` 的返回结果是命名数值向量——可用 `typeof(lm01$coefficients)` 得知。"),
+    answer('`summary(lm01)` 得到 summary.lm 类的列表对象，该列表包含10个元素，进而可用 `summary(lm01)$r.squared` 得到回归模型的 R^2。', 
+           correct = FALSE, 
+           message = "试下 `summary(lm01) %>% attributes()` 或 `summary(lm01) %>% length()`，你就会发现，`summary(lm01)` 返回的列表事实上有11个元素。"),
+    correct = "答对啦。通过此项练习，你对增强向量的强大和灵活之处就会有所体会，并初步了解该如何和它们打交道。",
+    incorrect = "错误！多选题，请务必在上面的代码框中输入相应代码进行探索性分析后回答。",
+    allow_retry = TRUE
+  ),
+  
+  caption = "不定项选择题"
+)
+
+```
+
+### 4. 函数 `Functions`
+
+#### 已帮同学们载入 `tidyverse` 包并在以下代码窗口中列示出生成向量 `x_na` 的代码，请回答以下选择题。
+
+```{r fc_4, exercise=TRUE, exercise.lines=6}
+x_na <- 1:10
+x_na[[5]] <- NA
+mean(x_na, na.rm = TRUE)
+
+```
+
+```{r fc_4-hint}
+# 可按左上角的 Start Over 按钮来重置代码
+
+```
+
+
+```{r quiz_4}
+quiz(
+  question("4.1 以下说法正确的有：",
+    answer("使用函数有助于重用代码、避免无心之误，并让代码更易理解。", 
+           correct = TRUE),
+    answer('R 中函数的三个构件分别为函数名、函数参数和函数体。', 
+           correct = FALSE, 
+           message = '请用 `?"function"` 查看关于函数的帮助文档，特别是 Technical details 部分。'),
+    answer('函数大致可划分为两类：1. 转换类函数、2. 副作用类函数。为了支持管道操作，后者最好用 `invisible()` 不可见地返回函数的处理对象参数。', correct = TRUE),
+    answer("函数的**参数**大致可划分为两类：1. 函数处理的对象、2. 如何处理对象的细节。", 
+           correct = TRUE),
+    answer("通常我们可用 `args()` 或 `formals()` 或 `str()` 或 `formalArgs()` 来查看特定函数的参数，但这招对原函数和泛型函数可能并不管用，此时更好的做法是直接查阅该函数帮助文档的 _Usage_ 部分。", correct = TRUE),
+    answer('R 使用 "词法作用域" 规则来查找函数中符号的具体取值。', correct = TRUE),
+    correct = "选择正确！",
+    incorrect = '错误！请重试。',
+    allow_retry = TRUE
+  ),
+  
+  question("4.2 以下哪些函数的返回值和 `mean(x_na, na.rm = TRUE)` 相同？",
+    answer('`mean(x_na)`', correct = FALSE, message = "`x_na` 包含缺失值。"),
+    answer("`mean(x_na, , TRUE)`", correct = TRUE),
+    answer("`mean(n = TRUE, x_na)`", correct = TRUE),
+    answer("`mean(x = x_na, , , TRUE)`", correct = FALSE,
+           message = "看仔细啦，多了个 `,` 也会导致参数位置匹配出错。"),
+    answer('`mean(x_na, 0, TRUE)`', correct = TRUE),
+    answer("`mean(, TRUE, x = x_na)`", correct = TRUE),
+    correct = "正确！尽管这些函数都会返回相同的结果，但显然 `mean(x_na, na.rm = TRUE)` 是最清晰明了的调用方法。",
+    incorrect = "错误！请 `?mean` 查看 `mean` 函数的参数及其位置，然后重试。",
+    allow_retry = TRUE
+  ),
+  
+  question('4.3 `args(cor)` 显示 `cor` 函数的 `method` 参数为 `method = c("pearson", "kendall", "spearman")`，请问下面说法正确的是：',
+    answer('`cor` 函数的 `method` 参数设定只能为 "pearson"、"kendall" 或 "spearman" 三者之一（或其缩写）。', correct = TRUE),
+    answer('若未设定，`cor` 函数 `method` 参数的默认取值为 c("pearson", "kendall", "spearman")。', correct = FALSE),
+    answer('若未设定，`cor` 函数 `method` 参数的默认取值为 "pearson"。', correct = TRUE),
+    answer('当设定 `method = c("pearson", "kendall")` 时，`cor` 函数会同时报告 "pearson" 和 "kendall" 两种方法计算得到的相关系数。', correct = FALSE),
+    correct = "答对啦。调用现有函数正确姿势的关键就在于了解 / 理解函数的参数。",
+    incorrect = "错误！请查看 `cor` 的帮助文档并重试。",
+    allow_retry = TRUE
+  ),
+  
+  caption = "不定项选择题"
+)
+
+```
+
+<br>
+
+### `r emo::ji("raising_hand_woman")` 提交不定项选择题的答案
+
+请同学们点击下面的 [Generate] 按钮在方框中生成答案的 hash 码，然后点击方框右上角上的复制按钮，并将得到的hash码直接粘贴到 [坚果云 Excel 表格收集表 QFwR-L06](https://workspace.jianguoyun.com/inbox/collect/1355eb63f40a48028fb3eab46735239c/submit) 中。
+
+```{r context="server"}
+learnrhash::encoder_logic()
+```
+
+```{r encode, echo=FALSE}
+learnrhash::encoder_ui(ui_before = NULL)
+```
+
+
+## `r emo::ji("woman_technologist")` 上机实操练习
+
+#### 这讲主要介绍 R 的 **基础数据结构**（原子向量、列表 与 增强向量）和 **函数** 的基本知识，同学们在回答上面选择题的过程中已完成上机实操练习 &#x1F469;&#x200D;&#x1F4BB;，就不再给同学们布置动手编程的题目啦 &#x1F942;。
+
